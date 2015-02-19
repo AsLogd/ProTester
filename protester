@@ -1,0 +1,148 @@
+#!/bin/bash
+
+
+#Color scheme
+######
+# Reset
+Color_Off='\e[0m'       # Text Reset
+
+# Regular Colors
+Yellow='\e[0;33m'       # Yellow
+Red='\e[0;31m'          # Red
+Green='\e[0;32m'        # Green
+#######
+# -i {path}	include. Sets env var of includes folder
+# -s {char}	spaces. Change spaces for the character specified (useful to check presentation)
+# -n {string}	new. Creates new ProTester project
+# -c		compile. Compiles the program without running tests
+usage="\n
+ProTester 0.01a -- Pro2 c++ projects -- Written by Dreth\n
+ -i {path}	include. Sets env var of includes folder\n
+ -s {char}	spaces. Change spaces for the character specified (useful to check presentation)\n
+ -n {string}	new. Creates new ProTester project\n
+ -c		compile. Compiles the program without running tests\n
+ -e 		execute. Executes the program reading from stdin"
+noOpts="42"
+compileOnly=false
+execute=false
+spaceChar=" "
+targetName=${PWD##*/}
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+
+function setIncludes {
+  export PATH=$1:$PATH
+}
+
+function clearDir {
+  if [ -f bin/$targetName.exe ]; then
+    rm bin/$targetName.exe
+  fi
+}
+
+function compile {
+  echo "Compiling..."
+  if [ -z ${PROTESTERINCLUDES+x} ]; then
+     g++ src/$targetName.cc -I$PROTESTERINCLUDES/ -o bin/$targetName.exe;
+  else
+     g++ src/$targetName.cc -o bin/$targetName.exe;
+  fi
+}
+
+function launch {
+  echo "Executing... NOW!"
+  bin/$targetName.exe
+}
+
+function runTests {
+  declare -i total
+  total=0
+  declare -i ok
+  ok=0
+
+  if [ -f bin/$targetName.exe ]; then
+    echo "####RUNNING TESTS####"
+  
+    for f in test/*.in; do
+      testFileName=${f%.*};
+      testFileName=${testFileName##*/};
+      bin/$targetName.exe < "test/$testFileName.in" > output/$testFileName.out;
+      total=total+1
+      result=$(diff -y "test/$testFileName.out" output/$testFileName.out)
+      if [ $? -eq 0 ]
+      then
+         ok=ok+1
+         echo "$testFileName - OK"
+      else
+         echo -e "${Red}$testFileName - FAILED:"
+         echo "$result"
+         echo -e "${Color_Off}"
+      fi
+    done
+  
+    if [ $total -eq $ok ]; then
+         echo -e "${Green}";
+    else
+         echo -e "${Red}";
+    fi
+    echo "PASSED: $ok/$total"
+    echo -e "${Color_Off}"
+ 
+  else #executable not found
+    echo -e "${Yellow}####COMPILATION ERROR####${Color_Off}"
+  fi
+}
+
+
+function newProject {
+  cp -r $DIR/protesterFiles $1
+  mv $1/src/template.cc $1/src/$1.cc
+}
+
+#Priority
+while getopts  ":i:s:n:che" flag;
+do
+  case $flag in
+    h)
+      echo -e $usage
+      exit 0
+      ;;
+    n)
+      newProject ${OPTARG}
+      exit 0
+      ;;
+  esac
+done
+
+OPTIND=1 #reset
+
+while getopts  ":i:s:n:che" flag;
+do
+  case $flag in
+    i)
+      setIncludes ${OPTARG}
+      ;;
+    s)
+      spaceChar=${OPTARG}
+      ;;
+    c)
+      compileOnly=true
+      ;;
+    e)
+      execute=true
+      ;;
+    *)
+      echo $noOpts
+      exit 0
+      ;;
+  esac
+done
+
+clearDir 
+compile 
+if [ "$compileOnly" = false ]; then
+  runTests 
+fi
+if [ "$execute" = true ]; then
+  launch
+fi
