@@ -43,7 +43,7 @@ function clearDir {
 function compile {
   echo "Compiling..."
   if [[ $includes ]]; then
-     echo "Inclusions path: "$targetName
+     echo "Inclusions path: "$includes
      g++ src/$targetName.cc -I$includes/ -o bin/$targetName.exe;
   else
      echo "No inclusions path found"
