@@ -17,7 +17,9 @@ Green='\e[0;32m'        # Green
 # -c		compile. Compiles the program without running tests
 usage="\n
 ProTester 0.01a -- Pro2 c++ projects -- Written by Dreth\n
- -i {path}	include. Sets env var of includes folder\n
+If compiler cannot find a library make sure you have the correct path
+to includes in a environment variable called \$INCLUSIONS
+
  -s {char}	spaces. Change spaces for the character specified (useful to check presentation)\n
  -n {string}	new. Creates new ProTester project\n
  -c		compile. Compiles the program without running tests\n
@@ -25,14 +27,15 @@ ProTester 0.01a -- Pro2 c++ projects -- Written by Dreth\n
 noOpts="42"
 compileOnly=false
 execute=false
-spaceChar=" "
+spaceChar=' '
 targetName=${PWD##*/}
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+includes=${INCLUSIONS};
 
-
-function setIncludes {
-  export PATH=$1:$PATH
-}
+#function setIncludes {
+# 
+#  echo export PATH=$1:$PATH
+#}
 
 function clearDir {
   if [ -f bin/$targetName.exe ]; then
@@ -42,9 +45,11 @@ function clearDir {
 
 function compile {
   echo "Compiling..."
-  if [ -z ${PROTESTERINCLUDES+x} ]; then
-     g++ src/$targetName.cc -I$PROTESTERINCLUDES/ -o bin/$targetName.exe;
+  if [[ $includes ]]; then
+     echo $targetName
+     g++ src/$targetName.cc -I$includes/ -o bin/$targetName.exe;
   else
+     echo "nada"
      g++ src/$targetName.cc -o bin/$targetName.exe;
   fi
 }
@@ -67,8 +72,10 @@ function runTests {
       testFileName=${f%.*};
       testFileName=${testFileName##*/};
       bin/$targetName.exe < "test/$testFileName.in" > output/$testFileName.out;
+      cat "output/$testFileName.out" | sed -r "s/[ \t\n]/$spaceChar/g" > outputP.temp
+      cat "test/$testFileName.out" | sed -r "s/[ \t\n]/$spaceChar/g" > outputW.temp
       total=total+1
-      result=$(diff -y "test/$testFileName.out" output/$testFileName.out)
+      result=$(diff -y outputW.temp outputP.temp)
       if [ $? -eq 0 ]
       then
          ok=ok+1
@@ -78,6 +85,7 @@ function runTests {
          echo "$result"
          echo -e "${Color_Off}"
       fi
+      rm outputP.temp outputW.temp
     done
   
     if [ $total -eq $ok ]; then
