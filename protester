@@ -17,9 +17,6 @@ Green='\e[0;32m'        # Green
 # -c		compile. Compiles the program without running tests
 usage="\n
 ProTester 0.01a -- Pro2 c++ projects -- Written by Dreth\n
-If compiler cannot find a library make sure you have the correct path
-to includes in a environment variable called \$INCLUSIONS
-
  -s {char}	spaces. Change spaces for the character specified (useful to check presentation)\n
  -n {string}	new. Creates new ProTester project\n
  -c		compile. Compiles the program without running tests\n
@@ -46,10 +43,10 @@ function clearDir {
 function compile {
   echo "Compiling..."
   if [[ $includes ]]; then
-     echo $targetName
+     echo "Inclusions path: "$targetName
      g++ src/$targetName.cc -I$includes/ -o bin/$targetName.exe;
   else
-     echo "nada"
+     echo "No inclusions path found"
      g++ src/$targetName.cc -o bin/$targetName.exe;
   fi
 }
