@@ -44,10 +44,12 @@ function compile {
   echo "Compiling..."
   if [[ $includes ]]; then
      echo "Inclusions path: "$includes
-     g++ src/$targetName.cc -I$includes/ -o bin/$targetName.exe;
+     g++ -c src/$targetName.cc -I$includes/ -o obj/$targetName.o;
+     g++ -o bin/$targetName.exe obj/*.o;
   else
      echo "No inclusions path found"
-     g++ src/$targetName.cc -o bin/$targetName.exe;
+     g++ src/$targetName.cc -c -o obj/$targetName.o;
+     g++ src/$targetName.cc -o bin/$targetName.exe obj/*.o;
   fi
 }
 
@@ -102,6 +104,7 @@ function runTests {
 function newProject {
   cp -r $DIR/protesterFiles $1
   mv $1/src/template.cc $1/src/$1.cc
+  mkdir $1/output $1/bin $1/obj
 }
 
 #Priority
