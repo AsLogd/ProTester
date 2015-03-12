@@ -34,28 +34,63 @@ includes=${INCLUSIONS};
 #  echo export PATH=$1:$PATH
 #}
 
+#deprecated
 function clearDir {
   if [ -f bin/$targetName.exe ]; then
     rm bin/$targetName.exe
   fi
+
 }
 
 function compile {
-  echo "Compiling..."
   if [[ $includes ]]; then
-     echo "Inclusions path: "$includes
-     g++ -c src/$targetName.cc -I$includes/ -o obj/$targetName.o;
-     g++ -o bin/$targetName.exe obj/*.o;
+    echo "Inclusions path: "$includes
+    echo "Compiling..."
+    for f in src/*.cc; do
+      ccFileName=${f%.*};
+      ccFileName=${ccFileName##*/};
+      echo "--"$ccFileName
+      g++ -c "src/$ccFileName.cc" -I$includes/ -o "obj/$ccFileName.o";
+      if [ ! -f "obj/$ccFileName.o" ]; then
+        echo -e "${Yellow}### COMPILATION FAILED FOR: $ccFileName ###"
+        exit
+      fi
+    done
   else
      echo "No inclusions path found"
-     g++ src/$targetName.cc -c -o obj/$targetName.o;
-     g++ src/$targetName.cc -o bin/$targetName.exe obj/*.o;
+     echo "Compiling..."
+     for f in src/*.cc; do
+      ccFileName=${f%.*};
+      ccFileName=${ccFileName##*/};
+      echo "--"$ccFileName
+      g++ "src/$ccFileName.cc" -c -o "obj/$ccFileName.o";
+      if [ ! -f "obj/$ccFileName.o" ]; then
+        echo -e "${Yellow}### COMPILATION FAILED FOR: $ccFileName ###"
+        exit
+      fi
+    done
+     
   fi
+  
+  echo -e "${Yellow}"
+  #link
+  g++ -o bin/$targetName.exe obj/*.o;
+  
+  if [ ! -f bin/$targetName.exe ]; then
+    echo -e "### LINK FAILED ###"
+    exit
+  fi
+  
+  echo -ne "${Color_Off}"
 }
 
 function launch {
-  echo "Executing... NOW!"
-  bin/$targetName.exe
+  if [ -f bin/$targetName.exe ]; then
+    echo "Executing... NOW!"
+    bin/$targetName.exe
+  else
+    echo "Nothing to launch"
+  fi
 }
 
 function runTests {
@@ -94,9 +129,7 @@ function runTests {
     fi
     echo "PASSED: $ok/$total"
     echo -e "${Color_Off}"
- 
-  else #executable not found
-    echo -e "${Yellow}####COMPILATION ERROR####${Color_Off}"
+  
   fi
 }
 
@@ -146,7 +179,7 @@ do
   esac
 done
 
-clearDir 
+#clearDir 
 compile 
 if [ "$compileOnly" = false ]; then
   runTests 
@@ -154,3 +187,5 @@ fi
 if [ "$execute" = true ]; then
   launch
 fi
+
+echo -ne "${Color_Off}"
