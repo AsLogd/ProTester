@@ -50,9 +50,10 @@ function compile {
       ccFileName=${f%.*};
       ccFileName=${ccFileName##*/};
       echo "--"$ccFileName
-      g++ -c "src/$ccFileName.cc" -I$includes/ -o "obj/$ccFileName.o";
+      g++ -c "src/$ccFileName.cc" -I$includes/ -Isrc/inc -o "obj/$ccFileName.o";
       if [ ! -f "obj/$ccFileName.o" ]; then
         echo -e "${Yellow}### COMPILATION FAILED FOR: $ccFileName ###"
+	echo -ne "${Color_Off}"
         exit
       fi
     done
@@ -63,9 +64,10 @@ function compile {
       ccFileName=${f%.*};
       ccFileName=${ccFileName##*/};
       echo "--"$ccFileName
-      g++ "src/$ccFileName.cc" -c -o "obj/$ccFileName.o";
+      g++ "src/$ccFileName.cc" -c -Isrc/inc -o "obj/$ccFileName.o";
       if [ ! -f "obj/$ccFileName.o" ]; then
         echo -e "${Yellow}### COMPILATION FAILED FOR: $ccFileName ###"
+	echo -ne "${Color_Off}"
         exit
       fi
     done
@@ -78,6 +80,7 @@ function compile {
   
   if [ ! -f bin/$targetName.exe ]; then
     echo -e "### LINK FAILED ###"
+    echo -ne "${Color_Off}"
     exit
   fi
   
@@ -103,9 +106,9 @@ function runTests {
     echo "####RUNNING TESTS####"
   
     for f in test/*.in; do
-      testFileName=${f%.*};
-      testFileName=${testFileName##*/};
-      bin/$targetName.exe < "test/$testFileName.in" > output/$testFileName.out;
+      testFileName=${f%.*}
+      testFileName=${testFileName##*/}
+      bin/$targetName.exe < "test/$testFileName.in" > output/$testFileName.out
       cat "output/$testFileName.out" | sed -r "s/[ \t\n]/$spaceChar/g" > outputP.temp
       cat "test/$testFileName.out" | sed -r "s/[ \t\n]/$spaceChar/g" > outputW.temp
       total=total+1
