@@ -5,7 +5,7 @@ Handle c++ projects and testing
 /  
 |-bin   //Executable files (*.exe)  
 |-obj   //Compiled and assembled (not linked) (*.o)  
-|-src   //Font code (*.cc)  
+|-src   //Source code (*.cc)  
 |-test  //Tests inputs and outputs (*.in,*.out)  
 |-output//Program's output to different tests  
 
