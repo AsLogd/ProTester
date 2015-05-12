@@ -24,6 +24,7 @@ ProTester 0.01a -- Pro2 c++ projects -- Written by Dreth\n
 noOpts="42"
 compileOnly=false
 execute=false
+recursiveMode=false
 spaceChar=' '
 targetName=${PWD##*/}
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
@@ -44,8 +45,13 @@ function clearDir {
 
 function compile {
   if [[ $includes ]]; then
-    echo "Inclusions path: "$includes
-    echo "Compiling..."
+    if [ "$recursiveMode" = false ]; then
+      echo "Inclusions path: "$includes
+      echo "Compiling..."  
+    else
+      echo "#Running tests for: "$targetName
+      echo "Compiling..."  
+    fi
     for f in src/*.cc; do
       ccFileName=${f%.*};
       ccFileName=${ccFileName##*/};
@@ -58,8 +64,13 @@ function compile {
       fi
     done
   else
-     echo "No inclusions path found"
-     echo "Compiling..."
+     if [ "$recursiveMode" = false ]; then
+      echo "Inclusions path: "$includes
+      echo "Compiling..."  
+    else
+      echo "===Running tests for: "$targetName"==="
+      echo "Compiling..."  
+    fi
      for f in src/*.cc; do
       ccFileName=${f%.*};
       ccFileName=${ccFileName##*/};
@@ -67,7 +78,7 @@ function compile {
       g++ "src/$ccFileName.cc" -c -Isrc/inc -o "obj/$ccFileName.o";
       if [ ! -f "obj/$ccFileName.o" ]; then
         echo -e "${Yellow}### COMPILATION FAILED FOR: $ccFileName ###"
-	echo -ne "${Color_Off}"
+	     echo -ne "${Color_Off}"
         exit
       fi
     done
@@ -103,8 +114,20 @@ function runTests {
   ok=0
 
   if [ -f bin/$targetName.exe ]; then
-    echo "####RUNNING TESTS####"
-  
+    if [ "$recursiveMode" = false ]; then
+      echo "Running unit tests..."  
+    fi
+
+    for D in ./test/*; do
+      if [ -d "${D}" ]; then
+          cd "${D}"
+          protester -t
+          cd ../..
+      fi
+    done
+    if [ "$recursiveMode" = false ]; then
+      echo "###MAIN TESTS###"  
+    fi
     for f in test/*.in; do
       testFileName=${f%.*}
       testFileName=${testFileName##*/}
@@ -131,8 +154,11 @@ function runTests {
          echo -e "${Red}";
     fi
     echo "PASSED: $ok/$total"
-    echo -e "${Color_Off}"
-  
+    echo -en "${Color_Off}"
+    if [ "$recursiveMode" = true ]; then
+      echo "===================="  
+      echo " "
+    fi
   fi
 }
 
@@ -144,7 +170,7 @@ function newProject {
 }
 
 #Priority
-while getopts  ":i:s:n:che" flag;
+while getopts  ":i:s:n:chet" flag;
 do
   case $flag in
     h)
@@ -160,7 +186,7 @@ done
 
 OPTIND=1 #reset
 
-while getopts  ":i:s:n:che" flag;
+while getopts  ":i:s:n:chet" flag;
 do
   case $flag in
     i)
@@ -174,6 +200,9 @@ do
       ;;
     e)
       execute=true
+      ;;
+    t)
+      recursiveMode=true
       ;;
     *)
       echo $noOpts
