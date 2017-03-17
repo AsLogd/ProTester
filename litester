@@ -16,7 +16,7 @@ Green='\e[0;32m'        # Green
 # -n {string}	new. Creates new ProTester project
 # -c		compile. Compiles the program without running tests
 usage="\n
-ProTester 0.01a -- Pro2 c++ projects -- Written by Dreth\n
+LiTester 0.01a -- LI prolog projects -- Written by Dreth\n
  -s {char}	spaces. Change spaces for the character specified (useful to check presentation)\n
  -n {string}	new. Creates new ProTester project\n
  -c		compile. Compiles the program without running tests\n
@@ -45,32 +45,18 @@ function clearDir {
 }
 
 function compile {
-   if [ "$recursiveMode" = false ]; then
-    echo "Compiling..."  
-  else
-    echo "===Running tests for: "$targetName"==="
-    echo "Compiling..."  
-  fi
-   for f in src/*.cc; do
-    ccFileName=${f%.*};
-    ccFileName=${ccFileName##*/};
-    echo "--"$ccFileName
-      if [ "$debugMode" = false ]; then
-	g++ "src/$ccFileName.cc" -c -Isrc/inc -o "obj/$ccFileName.o";
-      else
-	g++ "src/$ccFileName.cc" -c -D_GLIBCXX_DEBUG -Isrc/inc -o "obj/$ccFileName.o";
-      fi
+  echo "===Running tests for: "$targetName"==="
+  echo "Compiling..."  
+  echo "--"$targetName
+  swipl -O -q -g main --stand_alone=true -o bin/$targetName.exe -c "src/$targetName.pl"
 
-    if [ ! -f "obj/$ccFileName.o" ]; then
-      echo -e "${Yellow}### COMPILATION FAILED FOR: $ccFileName ###"
-    echo -ne "${Color_Off}"
-      exit
-    fi
-  done
+  if [ ! -f "bin/$targetName.exe" ]; then
+    echo -e "${Yellow}### COMPILATION FAILED FOR: $targetName ###"
+  echo -ne "${Color_Off}"
+    exit
+  fi
 
   echo -e "${Yellow}"
-  #link
-  g++ -o bin/$targetName.exe obj/*.o;
   
   if [ ! -f bin/$targetName.exe ]; then
     echo -e "### LINK FAILED ###"
@@ -97,9 +83,6 @@ function runTests {
   ok=0
 
   if [ -f bin/$targetName.exe ]; then
-    if [ "$recursiveMode" = false ]; then
-      echo "Running unit tests..."  
-    fi
 
     for D in ./test/*; do
       if [ -d "${D}" ]; then
@@ -108,9 +91,6 @@ function runTests {
           cd ../..
       fi
     done
-    if [ "$recursiveMode" = false ]; then
-      echo "###MAIN TESTS###"  
-    fi
     for f in test/*.in; do
       testFileName=${f%.*}
       testFileName=${testFileName##*/}
@@ -138,17 +118,13 @@ function runTests {
     fi
     echo "PASSED: $ok/$total"
     echo -en "${Color_Off}"
-    if [ "$recursiveMode" = true ]; then
-      echo "===================="  
-      echo " "
-    fi
   fi
 }
 
 
 function newProject {
   cp -r $DIR/protesterFiles $1
-  mv $1/src/template.cc $1/src/$1.cc
+  mv $1/src/template.pl $1/src/$1.pl
   mkdir $1/output $1/bin $1/obj
 }
 
