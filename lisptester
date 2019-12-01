@@ -47,7 +47,7 @@ function compile {
   echo "===Running tests for: "$targetName"==="
   echo "Compiling..."  
   echo "--"$targetName
-  clisp -c "src/$targetName.pl" -o bin/$targetName
+  clisp -c "src/$targetName.pl" -o bin/$targetName -q -q
 
   if [ ! -f "bin/$targetName.fas" ]; then
     echo -e "${Yellow}### COMPILATION FAILED FOR: $targetName ###"
