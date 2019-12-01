@@ -16,9 +16,9 @@ Green='\e[0;32m'        # Green
 # -n {string}	new. Creates new ProTester project
 # -c		compile. Compiles the program without running tests
 usage="\n
-LiTester 0.01a -- LI prolog projects -- Written by Dreth\n
+LispTester 0.01a -- Lisp -- Written by Aslogd\n
  -s {char}	spaces. Change spaces for the character specified (useful to check presentation)\n
- -n {string}	new. Creates new LiTester project\n
+ -n {string}	new. Creates new LispTester project\n
  -c		compile. Compiles the program without running tests\n
  -e 		execute. Executes the program reading from stdin"
 noOpts="42"
@@ -37,8 +37,8 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 #deprecated
 function clearDir {
-  if [ -f bin/$targetName.exe ]; then
-    rm bin/$targetName.exe
+  if [ -f bin/$targetName.fas ]; then
+    rm bin/$targetName.fas
   fi
 
 }
@@ -47,9 +47,9 @@ function compile {
   echo "===Running tests for: "$targetName"==="
   echo "Compiling..."  
   echo "--"$targetName
-  swipl -O -q -g main --stand_alone=true -o bin/$targetName.exe -c "src/$targetName.pl"
+  clisp -c "src/$targetName.pl" -o bin/$targetName
 
-  if [ ! -f "bin/$targetName.exe" ]; then
+  if [ ! -f "bin/$targetName.fas" ]; then
     echo -e "${Yellow}### COMPILATION FAILED FOR: $targetName ###"
   echo -ne "${Color_Off}"
     exit
@@ -57,7 +57,7 @@ function compile {
 
   echo -e "${Yellow}"
   
-  if [ ! -f bin/$targetName.exe ]; then
+  if [ ! -f bin/$targetName.fas ]; then
     echo -e "### LINK FAILED ###"
     echo -ne "${Color_Off}"
     exit
@@ -67,9 +67,9 @@ function compile {
 }
 
 function launch {
-  if [ -f bin/$targetName.exe ]; then
+  if [ -f bin/$targetName.fas ]; then
     echo "Executing... NOW!"
-    bin/$targetName.exe
+    clisp bin/$targetName.fas
   else
     echo "Nothing to launch"
   fi
@@ -81,7 +81,7 @@ function runTests {
   declare -i ok
   ok=0
 
-  if [ -f bin/$targetName.exe ]; then
+  if [ -f bin/$targetName.fas ]; then
 
     for D in ./test/*; do
       if [ -d "${D}" ]; then
@@ -93,7 +93,7 @@ function runTests {
     for f in test/*.in; do
       testFileName=${f%.*}
       testFileName=${testFileName##*/}
-      bin/$targetName.exe < "test/$testFileName.in" > output/$testFileName.out
+      clisp bin/$targetName.fas < "test/$testFileName.in" > output/$testFileName.out
       cat "output/$testFileName.out" | sed -r "s/[ \t\n]/$spaceChar/g" > outputP.temp
       cat "test/$testFileName.out" | sed -r "s/[ \t\n]/$spaceChar/g" > outputW.temp
       total=total+1
@@ -122,7 +122,7 @@ function runTests {
 
 
 function newProject {
-  cp -r $DIR/litesterFiles $1
+  cp -r $DIR/lisptesterFiles $1
   mv $1/src/template.pl $1/src/$1.pl
   mkdir $1/output $1/bin
 }
